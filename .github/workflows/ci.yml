@@ -1,0 +1,59 @@
+name: Templates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    name: Generate, build and lint every template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
+      # Prebuilt binary. `cargo install cargo-generate` works too, but compiles
+      # it from source on every run.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-generate
+
+      # A template's sources are not a valid Rust project: the manifests carry
+      # `name = "{{...}}"`, which is not a legal package name until it has been
+      # substituted. So each one is generated first and the generated project is
+      # what gets built.
+      #
+      # Every directory holding a cargo-generate.toml is a template. Nothing
+      # lists them, so adding one needs no change here.
+      - name: Verify templates
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          found=0
+          for manifest in */cargo-generate.toml; do
+            template="$(dirname "$manifest")"
+            found=1
+            echo "::group::$template"
+            out="$RUNNER_TEMP/$template"
+            mkdir -p "$out"
+            cargo generate --path "$template" \
+              --name generated_project --force --silent --vcs none \
+              --destination "$out"
+            pushd "$out/generated_project" > /dev/null
+            cargo build --workspace --all-targets
+            cargo test --workspace
+            cargo clippy --workspace --all-targets -- -D warnings
+            cargo fmt --all --check
+            popd > /dev/null
+            echo "::endgroup::"
+          done
+          if [ "$found" -eq 0 ]; then
+            echo "no templates found: expected at least one */cargo-generate.toml" >&2
+            exit 1
+          fi

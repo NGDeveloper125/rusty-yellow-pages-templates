@@ -1,0 +1,4 @@
+[package]
+name = "{{lib_name}}"
+version.workspace = true
+edition.workspace = true
