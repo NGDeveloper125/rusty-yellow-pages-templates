@@ -1,0 +1,9 @@
+[package]
+name = "{{cli_name}}"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+# Depend on the library by path. Cargo resolves it inside this workspace,
+# so there is nothing to publish or version while developing.
+{{lib_name}} = { path = "../{{lib_name}}" }
