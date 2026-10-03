@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{project-name}}</title>
+  </head>
+  <body>
+    <h1>{{project-name}}</h1>
+    <p id="output">loading…</p>
+
+    <!--
+      This page must be served over HTTP. It loads an ES module, and that
+      module fetches the .wasm file beside it; opening the file directly from
+      disk fails on both counts.
+    -->
+    <script type="module">
+      import init, { example } from './pkg/{{wasm_name}}.js';
+
+      await init();
+      document.getElementById('output').textContent = example('hello from rust');
+    </script>
+  </body>
+</html>

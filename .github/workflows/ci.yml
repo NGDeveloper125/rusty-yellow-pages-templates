@@ -15,14 +15,15 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
 
       - uses: Swatinem/rust-cache@v2
 
-      # Prebuilt binary. `cargo install cargo-generate` works too, but compiles
-      # it from source on every run.
+      # Prebuilt binaries. `cargo install` works too, but compiles both from
+      # source on every run.
       - uses: taiki-e/install-action@v2
         with:
-          tool: cargo-generate
+          tool: cargo-generate,wasm-pack
 
       # A template's sources are not a valid Rust project: the manifests carry
       # `name = "{{...}}"`, which is not a legal package name until it has been
@@ -50,6 +51,19 @@ jobs:
             cargo test --workspace
             cargo clippy --workspace --all-targets -- -D warnings
             cargo fmt --all --check
+
+            # A crate declaring cdylib is a wasm crate. Building it for the
+            # host, as the steps above just did, proves nothing about wasm, so
+            # it is packaged for the real target too. No template lists itself
+            # as a wasm one: the crate type is the fact, so it is the test.
+            while IFS= read -r wasm_manifest; do
+              crate_dir="$(dirname "$wasm_manifest")"
+              echo "wasm-pack: $crate_dir"
+              wasm-pack build "$crate_dir" --target web \
+                --out-dir "$out/pkg-$(basename "$crate_dir")"
+            done < <(grep -rl 'crate-type *= *\["cdylib"' \
+              --include=Cargo.toml --exclude-dir=target . || true)
+
             popd > /dev/null
             echo "::endgroup::"
           done
