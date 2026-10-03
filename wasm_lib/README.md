@@ -6,7 +6,7 @@ A WebAssembly module in `crates/{{wasm_name}}`, with the logic it exposes in
 ## Prerequisites
 
     rustup target add wasm32-unknown-unknown
-    cargo install wasm-pack
+    cargo install wasm-pack --locked
 
 ## Build
 
