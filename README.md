@@ -44,6 +44,7 @@ cargo generate cli_lib --name billing
 | Template | Generates |
 | --- | --- |
 | [`cli_lib`](cli_lib) | A workspace with a console crate and a library crate, the path dependency and the call between them already written. |
+| [`wasm_lib`](wasm_lib) | A workspace with a wasm-bindgen module and the library it calls, plus a page that loads and runs it. |
 
 Each template is documented on the site, which covers what it generates and
 which settings it sets: <https://rustyyellowpages.dev/more/templates/>
@@ -63,7 +64,10 @@ which settings it sets: <https://rustyyellowpages.dev/more/templates/>
    `tools/sitegen/src/more.rs`, and prose in `pages/more/templates/<name>.md`.
 
 CI needs no change — every directory containing a `cargo-generate.toml` is
-generated, built, tested and linted.
+generated, built, tested and linted. A crate declaring
+`crate-type = ["cdylib"]` is additionally packaged with `wasm-pack` for
+`wasm32-unknown-unknown`, since building a wasm crate for the host proves
+nothing about wasm.
 
 ## Licence
 
