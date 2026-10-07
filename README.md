@@ -12,8 +12,13 @@ The example code is meant to be replaced.
 cargo-generate is a separate subcommand, installed once:
 
 ```
-cargo install cargo-generate
+cargo install cargo-generate --locked
 ```
+
+`--locked` builds each tool against the dependency versions its author released
+it with. Without it cargo resolves to the newest, which can require a newer
+compiler than the one installed and fail to build.
+
 
 Then, naming the template and the project:
 
